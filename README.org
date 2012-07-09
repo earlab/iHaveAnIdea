@@ -1,0 +1,12 @@
+Import VRML files to oF and SC for different approch of visualization and sonification.
+
+
+* Install notes
+- Clean the VRML file
+  - Erase extra data, and leave only the point coordinates
+  - Convert it to txt and import it to openFrameworks
+ 
+* links
+
+- [[http://sourceforge.net/projects/cv97cc/files/][CyberVRML97 for C++]]
+- 
