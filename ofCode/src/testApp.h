@@ -36,6 +36,8 @@ class testApp : public ofBaseApp {
 		int             letterCount;
 		vector <string> seussLines;	
 	
+	ofEasyCam cam; // add mouse controls for camera movement
+	
 
 
 };

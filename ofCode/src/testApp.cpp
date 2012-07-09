@@ -3,6 +3,15 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
+	ofSetVerticalSync(true);
+	
+	// this uses depth information for occlusion
+	// rather than always drawing things on top of each other
+	glEnable(GL_DEPTH_TEST);
+	
+	// this sets the camera's distance from the object
+	cam.setDistance(500);
+	ofBackground(0);
 
 	// open an outgoing connection to HOST:PORT
 	sender.setup(HOST, PORT);
@@ -66,9 +75,16 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	for (int i =0; i < 14000; i++){
-		ofBox(300*points[i].x, 300*points[i].y, 300*points[i].z, 2);
+	cam.begin();
+	//ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+	//ofBeginShape();
+
+	for (int i =0; i < 30000; i++){
+		ofBox(300*points[i].x, 300*points[i].y, 300*points[i].z, 1);
+		//ofVertex(300*points[i].x, 300*points[i].y, 300*points[i].z);
 	}
+	//ofEndShape();
+	cam.end();
 }
 
 //--------------------------------------------------------------
@@ -82,6 +98,19 @@ void testApp::keyPressed(int key){
 		m.addFloatArg(ofGetElapsedTimef());
 		sender.sendMessage(m);
 	}
+	switch(key) {
+		case 'M':
+		case 'm':
+			if(cam.getMouseInputEnabled()) cam.disableMouseInput();
+			else cam.enableMouseInput();
+			break;
+			
+		case 'F':
+		case 'f':
+			ofToggleFullscreen();
+			break;
+	}
+	
 }
 
 //--------------------------------------------------------------
