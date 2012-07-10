@@ -9,9 +9,9 @@ void testApp::setup(){
 	part1 = false;
 	part3 = false;	
 	attractToCenterBool = false;
-	//ofHideCursor();
+	ofHideCursor();
 	ofEnableAlphaBlending(); 
-	CGDisplayHideCursor(kCGDirectMainDisplay); 
+	//CGDisplayHideCursor(kCGDirectMainDisplay); 
 	//glutSetCursor(
 	//glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
 	// open an outgoing connection to HOST:PORT
