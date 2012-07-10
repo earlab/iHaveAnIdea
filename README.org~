@@ -1,11 +1,5 @@
-
-* Info
-
 Import VRML files to oF and SC for different approch of visualization and sonification.
 
-* Subversion Control Repository
-
-- https://github.com/earlab/iHaveAnIdea
 
 * Install notes
 - Clean the VRML file
@@ -20,5 +14,5 @@ Import VRML files to oF and SC for different approch of visualization and sonifi
 * Documentation
 
 #+begin_html
-<iframe width="420" height="315" src="http://www.youtube.com/embed/BM9FgZ4KJQo" frameborder="0" allowfullscreen></iframe>
+<iframe width="420" height="315" src="http://www.youtube.com/embed/p0WsaVWYxAc" frameborder="0" allowfullscreen></iframe>
 #+end_html

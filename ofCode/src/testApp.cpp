@@ -80,7 +80,7 @@ void testApp::draw(){
 	//ofBeginShape();
 
 	for (int i =0; i < 30000; i++){
-		ofBox(300*points[i].x, 300*points[i].y, 300*points[i].z, 1);
+		ofCircle(300*points[i].x, 300*points[i].y, 300*points[i].z, 2);
 		//ofVertex(300*points[i].x, 300*points[i].y, 300*points[i].z);
 	}
 	//ofEndShape();
