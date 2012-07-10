@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
+	attractToCenterBool = false;
 	// open an outgoing connection to HOST:PORT
 	sender.setup(HOST, PORT);
     ofBackgroundHex(0x000000);
@@ -12,8 +13,8 @@ void testApp::setup(){
 	cam.setFarClip(10000);
 	center = ofVec3f(0,0,0);
     // this is our buffer to stroe the text data
-    //ofBuffer buffer = ofBufferFromFile("/Users/ari/Projects/artistic/Import3dfromVRML/data/engefalos00.txt");
-	ofBuffer buffer = ofBufferFromFile("engefalos00.txt");
+    ofBuffer buffer = ofBufferFromFile("/Users/ari/Projects/artistic/Import3dfromVRML/data/engefalos00.txt");
+	//ofBuffer buffer = ofBufferFromFile("engefalos00.txt");
     if(buffer.size()) { 
 		
         // we now keep grabbing the next line
@@ -56,14 +57,15 @@ ofVec3f testApp::findPoint(string str) {
 
 //--------------------------------------------------------------
 void testApp::update(){
-	for (int i = 0 ; i < points.size(); i++){
-		speeds[i] += accelerations[i];
-		points[i] += speeds[i];
-		colors[i] = ofFloatColor(speeds[i].x,speeds[i].y,speeds[i].z);
-		accelerations[i] = 0;
+	
+	if (attractToCenterBool == true) {
+		attractToCenter();
+	} else {
+		pushThemAway();
+		pullToCenter();
+		applyPerlin();		
 	}
-	pullToCenter();
-	applyPerlin();
+
 }
 
 //--------------------------------------------------------------
@@ -74,41 +76,6 @@ void testApp::draw(){
 	vbo.draw(GL_POINTS, 0, (int)points.size());
 	cam.end();
 }
-
-//--------------------------------------------------------------
-void testApp::keyPressed(int key){
-	/*if(key == 'a' || key == 'A'){
-		ofxOscMessage m;
-		m.setAddress("/test");
-		m.addIntArg(1);
-		m.addFloatArg(3.5f);
-		m.addStringArg("hello");
-		m.addFloatArg(ofGetElapsedTimef());
-		sender.sendMessage(m);
-<<<<<<< HEAD
-	}
-	switch(key) {
-		case 'M':
-		case 'm':
-			if(cam.getMouseInputEnabled()) cam.disableMouseInput();
-			else cam.enableMouseInput();
-			break;
-			
-		case 'F':
-		case 'f':
-			ofToggleFullscreen();
-			break;
-	}
-	
-=======
-	}*/
-}
-
-//--------------------------------------------------------------
-void testApp::keyReleased(int key){
-
-}
-
 void testApp::pullToCenter() {
 	for (int i = 0 ; i < points.size(); i++){
 		ofVec3f dirToCenter	= points[i] - center;
@@ -122,52 +89,50 @@ void testApp::pullToCenter() {
 		}
 	}
 }
+void testApp::attractToCenter() {
+	for (int i = 0 ; i < points.size(); i++){
+		ofVec3f dirToCenter	= points[i] - initialPoints[i];
+		float distToCenter	= dirToCenter.length();
+		float maxDistance	= 0.0f;
+		dirToCenter.normalize();
+		float pullStrength = 0.001f;
+		speeds[i] -= dirToCenter * ( ( distToCenter - maxDistance ) * pullStrength );
+		points[i] += speeds[i];
+		colors[i] = ofFloatColor(1-speeds[i].x,1-speeds[i].y ,1-speeds[i].z + 0.2);
+		accelerations[i] = 0;		
+		speeds[i] = 0.99*speeds[i];
+	}
+}
+void testApp::pushThemAway() {
+	for (int i = 0 ; i < points.size(); i++){
+		speeds[i] += accelerations[i];
+		points[i] += speeds[i];
+		colors[i] = ofFloatColor(speeds[i].x,speeds[i].y,speeds[i].z);
+		accelerations[i] = 0;
+	}		
+}
 
 void testApp::applyPerlin() {
-for (int i = 0 ; i < points.size(); i++)
-{
-	float nX = points[i].x * 0.005f;
-	float nY = points[i].y * 0.005f;
-	float nZ = points[i].z * 0.005f;
-	float nW = ofGetFrameNum() * 0.0025f;
-	float noise = ofNoise( nX, nY, nZ );
-	float angle = noise * 15.0f;
-	ofVec3f noiseVector( cos( angle ), sin( angle ), cos(angle) );
-	speeds[i] += noiseVector  * 0.01f;
+	for (int i = 0 ; i < points.size(); i++)
+	{
+		float nX = points[i].x * 0.005f;
+		float nY = points[i].y * 0.005f;
+		float nZ = points[i].z * 0.005f;
+		float nW = ofGetFrameNum() * 0.0025f;
+		float noise = ofNoise( nX, nY, nZ );
+		float angle = noise * 15.0f;
+		ofVec3f noiseVector( cos( angle ), sin( angle ), cos(angle) );
+		speeds[i] += noiseVector  * 0.01f;
+	}
 }
-
-
-}
-
-//--------------------------------------------------------------
 void testApp::mouseMoved(int x, int y){
-	/*ofxOscMessage m;
-	m.setAddress("/mouse/position");
-	m.addIntArg(x);
-	m.addIntArg(y);
-	sender.sendMessage(m);*/
 }
-
-//--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
+void testApp::mouseDragged(int x, int y, int button){}
 void testApp::mousePressed(int x, int y, int button){
-	/*ofxOscMessage m;
-	m.setAddress("/mouse/button");
-	m.addStringArg("down");
-	sender.sendMessage(m);*/
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button){
-	/*ofxOscMessage m;
-	m.setAddress("/mouse/button");
-	m.addStringArg("up");
-	sender.sendMessage(m);*/
-
 }
 
 //--------------------------------------------------------------
@@ -185,3 +150,40 @@ void testApp::dragEvent(ofDragInfo dragInfo){
 
 }
 
+void testApp::keyPressed(int key){
+	/*
+	 ofxOscMessage m;
+	 m.setAddress("/test");
+	 m.addIntArg(1);
+	 m.addFloatArg(3.5f);
+	 m.addStringArg("hello");
+	 m.addFloatArg(ofGetElapsedTimef());
+	 sender.sendMessage(m);
+	 */
+	switch(key) {
+		case 'M':
+		case 'm':
+			if(cam.getMouseInputEnabled()) cam.disableMouseInput();
+			else cam.enableMouseInput();
+			break;
+			
+		case 'F':
+		case 'f':
+			
+			ofToggleFullscreen();
+			break;
+		case 'i':
+			for (int i = 0 ; i < points.size(); i++){
+				points[i] = initialPoints[i];
+			}
+			break;
+		case 'g':
+			attractToCenterBool = !attractToCenterBool;
+			cout << attractToCenterBool;
+			break;			
+	}
+	
+}
+void testApp::keyReleased(int key){
+	
+}
