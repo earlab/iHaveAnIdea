@@ -4,6 +4,7 @@
 void testApp::setup(){
 
 	attractToCenterBool = false;
+	ofHideCursor();
 	// open an outgoing connection to HOST:PORT
 	sender.setup(HOST, PORT);
     ofBackgroundHex(0x000000);
@@ -65,12 +66,22 @@ void testApp::update(){
 		pullToCenter();
 		applyPerlin();		
 	}
+	
+	ofxOscMessage m;
+	m.setAddress("mousePos");
+	m.addIntArg(ofGetMouseX());
+	m.addIntArg(ofGetMouseY());	
+	sender.sendMessage(m);
+	
 
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 	cam.begin();
+//	if (part) {
+//		<#statements#>
+//	}
 	vbo.setColorData(&colors[0],colors.size(),GL_DYNAMIC_DRAW);
 	vbo.setVertexData(&points[0], points.size(), GL_DYNAMIC_DRAW);
 	vbo.draw(GL_POINTS, 0, (int)points.size());
