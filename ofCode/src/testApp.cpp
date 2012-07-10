@@ -3,24 +3,17 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
-	ofSetVerticalSync(true);
-	
-	// this uses depth information for occlusion
-	// rather than always drawing things on top of each other
-	glEnable(GL_DEPTH_TEST);
-	
-	// this sets the camera's distance from the object
-	cam.setDistance(500);
-	ofBackground(0);
-
 	// open an outgoing connection to HOST:PORT
 	sender.setup(HOST, PORT);
-    //ofBackgroundHex(0xff72a1);
+    ofBackgroundHex(0x000000);
     ofSetFrameRate(30);
-    ofSetWindowPosition(500, 500);    
+    ofSetWindowPosition(500, 500);
+	cam.setDistance(1000);
+	cam.setFarClip(10000);
+	center = ofVec3f(0,0,0);
     // this is our buffer to stroe the text data
-    ofBuffer buffer = ofBufferFromFile("/Users/ari/Projects/artistic/Import3dfromVRML/data/engefalos00.txt");
-    
+    //ofBuffer buffer = ofBufferFromFile("/Users/ari/Projects/artistic/Import3dfromVRML/data/engefalos00.txt");
+	ofBuffer buffer = ofBufferFromFile("engefalos00.txt");
     if(buffer.size()) { 
 		
         // we now keep grabbing the next line
@@ -29,20 +22,18 @@ void testApp::setup(){
             
             // move on to the next line
             string line = buffer.getNextLine();
-			
-            
-            // copy the line to draw later
-            // make sure its not a empty line
-            if(line.empty() == false) {
-                seussLines.push_back(line);
-            }
-            findPoint(line);
-            // print out the line
-            //cout << line << endl;
-            
+
+			// extract the vector and push it on the back of the list
+			ofVec3f tmpLine = findPoint(line);
+            points.push_back(tmpLine);
+			speeds.push_back(ofVec3f(ofRandomf()*2,ofRandomf()*2,ofRandomf()*2));
+			colors.push_back(ofFloatColor(1,1,1));
+			accelerations.push_back(ofVec3f(0,0,0));
+			initialPoints.push_back(tmpLine);
         }
-        
-    }	
+    }
+
+	
 }
 
 ofVec3f testApp::findPoint(string str) {
@@ -50,46 +41,43 @@ ofVec3f testApp::findPoint(string str) {
 	string tempString;
 	int tempPosition = str.find(" ");
 	tempString = str.substr(0,str.size());
-	tempVec.x = ofToFloat(tempString.substr(0,tempPosition));	
+	tempVec.x = ofToFloat(tempString.substr(0,tempPosition))*300;	
 	tempPosition = tempString.find(" ");
-	tempVec.y = ofToFloat(tempString.substr(tempPosition+1,tempPosition));
+	tempVec.y = ofToFloat(tempString.substr(tempPosition+1,tempPosition))*300;
 	tempString = tempString.substr(tempPosition+1,tempString.size());
 	tempPosition = tempString.find(" ");
-	tempVec.z = ofToFloat(tempString.substr(tempPosition+1,tempPosition));
+	tempVec.z = ofToFloat(tempString.substr(tempPosition+1,tempPosition))*300;
 	tempString = tempString.substr(tempPosition+1,tempString.size());
 	//tempString = tempString.substr(tempPosition+1,tempString.size());
-	cout << tempVec << endl;
-	points[counter] = tempVec;
-	counter++;
-	
-	
-	
-	
+	//cout << tempVec << endl;
 	return tempVec;
+	glPointSize(15);
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
-
+	for (int i = 0 ; i < points.size(); i++){
+		speeds[i] += accelerations[i];
+		points[i] += speeds[i];
+		colors[i] = ofFloatColor(speeds[i].x,speeds[i].y,speeds[i].z);
+		accelerations[i] = 0;
+	}
+	pullToCenter();
+	applyPerlin();
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 	cam.begin();
-	//ofSetPolyMode(OF_POLY_WINDING_NONZERO);
-	//ofBeginShape();
-
-	for (int i =0; i < 30000; i++){
-		ofCircle(300*points[i].x, 300*points[i].y, 300*points[i].z, 2);
-		//ofVertex(300*points[i].x, 300*points[i].y, 300*points[i].z);
-	}
-	//ofEndShape();
+	vbo.setColorData(&colors[0],colors.size(),GL_DYNAMIC_DRAW);
+	vbo.setVertexData(&points[0], points.size(), GL_DYNAMIC_DRAW);
+	vbo.draw(GL_POINTS, 0, (int)points.size());
 	cam.end();
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-	if(key == 'a' || key == 'A'){
+	/*if(key == 'a' || key == 'A'){
 		ofxOscMessage m;
 		m.setAddress("/test");
 		m.addIntArg(1);
@@ -97,6 +85,7 @@ void testApp::keyPressed(int key){
 		m.addStringArg("hello");
 		m.addFloatArg(ofGetElapsedTimef());
 		sender.sendMessage(m);
+<<<<<<< HEAD
 	}
 	switch(key) {
 		case 'M':
@@ -111,6 +100,8 @@ void testApp::keyPressed(int key){
 			break;
 	}
 	
+=======
+	}*/
 }
 
 //--------------------------------------------------------------
@@ -118,13 +109,43 @@ void testApp::keyReleased(int key){
 
 }
 
+void testApp::pullToCenter() {
+	for (int i = 0 ; i < points.size(); i++){
+		ofVec3f dirToCenter	= points[i] - center;
+		float distToCenter	= dirToCenter.length();
+		float maxDistance	= 800.0f;
+	
+		if( distToCenter > maxDistance ){
+			dirToCenter.normalize();
+			float pullStrength = 0.0001f;
+			speeds[i] -= dirToCenter * ( ( distToCenter - maxDistance ) * pullStrength );
+		}
+	}
+}
+
+void testApp::applyPerlin() {
+for (int i = 0 ; i < points.size(); i++)
+{
+	float nX = points[i].x * 0.005f;
+	float nY = points[i].y * 0.005f;
+	float nZ = points[i].z * 0.005f;
+	float nW = ofGetFrameNum() * 0.0025f;
+	float noise = ofNoise( nX, nY, nZ );
+	float angle = noise * 15.0f;
+	ofVec3f noiseVector( cos( angle ), sin( angle ), cos(angle) );
+	speeds[i] += noiseVector  * 0.01f;
+}
+
+
+}
+
 //--------------------------------------------------------------
 void testApp::mouseMoved(int x, int y){
-	ofxOscMessage m;
+	/*ofxOscMessage m;
 	m.setAddress("/mouse/position");
 	m.addIntArg(x);
 	m.addIntArg(y);
-	sender.sendMessage(m);
+	sender.sendMessage(m);*/
 }
 
 //--------------------------------------------------------------
@@ -134,18 +155,18 @@ void testApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button){
-	ofxOscMessage m;
+	/*ofxOscMessage m;
 	m.setAddress("/mouse/button");
 	m.addStringArg("down");
-	sender.sendMessage(m);
+	sender.sendMessage(m);*/
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button){
-	ofxOscMessage m;
+	/*ofxOscMessage m;
 	m.setAddress("/mouse/button");
 	m.addStringArg("up");
-	sender.sendMessage(m);
+	sender.sendMessage(m);*/
 
 }
 

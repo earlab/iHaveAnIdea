@@ -24,11 +24,21 @@ class testApp : public ofBaseApp {
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+		void pullToCenter();
+		void applyPerlin();
 		ofVec3f findPoint(string srt);
-	
-		ofVec3f points[40000];
-	int counter;
-	ofTrueTypeFont font;
+		ofVec3f center;
+		vector<ofFloatColor> colors;
+		vector<ofVec3f> points;
+		vector<ofVec3f> speeds;
+		vector<ofVec3f> accelerations;
+		vector<ofVec3f> initialPoints;
+		float gravity;
+		ofVbo vbo;
+		ofEasyCam cam;
+		//ofVec3f points[40000];
+		//int counter;
+		ofTrueTypeFont font;
 		ofxOscSender sender;
 	
 		float           nextLetterTime;
@@ -38,7 +48,6 @@ class testApp : public ofBaseApp {
 	
 	ofEasyCam cam; // add mouse controls for camera movement
 	
-
 
 };
 
