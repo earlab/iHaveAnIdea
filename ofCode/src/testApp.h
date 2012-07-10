@@ -31,7 +31,12 @@ class testApp : public ofBaseApp {
 	
 		ofVec3f findPoint(string srt);
 		ofVec3f center;
-
+	
+		ofVec3f initialPointsPos[50000];
+	ofVec3f before;
+	
+	int counter;
+	int rateSendNode;
 		vector<ofFloatColor> colors;
 		vector<ofVec3f> points;
 		vector<ofVec3f> speeds;
@@ -41,6 +46,8 @@ class testApp : public ofBaseApp {
 		float gravity;
 		bool attractToCenterBool;
 		ofVbo vbo;
+	
+	int randomNode;
 		
 		ofEasyCam cam;
 
@@ -50,7 +57,9 @@ class testApp : public ofBaseApp {
 		float           nextLetterTime;
 		int             lineCount;
 		int             letterCount;
-		vector <string> seussLines;	
+		vector <string> seussLines;
+	
+	bool part1, part2, part3;
 
 };
 

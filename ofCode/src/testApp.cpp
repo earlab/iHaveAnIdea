@@ -2,9 +2,18 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
-
+	ofSetBackgroundAuto(false);
+	part2 = false;
+	rateSendNode = 20;
+	counter = 0;
+	part1 = false;
+	part3 = false;	
 	attractToCenterBool = false;
-	ofHideCursor();
+	//ofHideCursor();
+	ofEnableAlphaBlending(); 
+	CGDisplayHideCursor(kCGDirectMainDisplay); 
+	//glutSetCursor(
+	//glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
 	// open an outgoing connection to HOST:PORT
 	sender.setup(HOST, PORT);
     ofBackgroundHex(0x000000);
@@ -32,6 +41,8 @@ void testApp::setup(){
 			colors.push_back(ofFloatColor(1,1,1));
 			accelerations.push_back(ofVec3f(0,0,0));
 			initialPoints.push_back(tmpLine);
+//			initialPointsPos[counter] = tmpLine;
+//			counter++;
         }
     }
 
@@ -52,12 +63,32 @@ ofVec3f testApp::findPoint(string str) {
 	tempString = tempString.substr(tempPosition+1,tempString.size());
 	//tempString = tempString.substr(tempPosition+1,tempString.size());
 	//cout << tempVec << endl;
+	initialPointsPos[counter] = tempVec;
+	counter++;
+
 	return tempVec;
 	glPointSize(15);
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
+	if (ofGetFrameNum()%rateSendNode == true) {
+		randomNode = int(ofRandom(0, 40000));
+		ofxOscMessage m;
+		m.setAddress("node");
+		m.addFloatArg(initialPointsPos[randomNode].x);		
+		m.addFloatArg(initialPointsPos[randomNode].y);		
+		m.addFloatArg(initialPointsPos[randomNode].z);
+		m.addFloatArg(initialPointsPos[randomNode].distance( before ));
+		if (attractToCenterBool == true) {
+			m.addIntArg(10);
+		}	else {
+			m.addIntArg(1000);
+		}
+		sender.sendMessage(m);
+		
+	}
+
 	
 	if (attractToCenterBool == true) {
 		attractToCenter();
@@ -68,24 +99,42 @@ void testApp::update(){
 	}
 	
 	ofxOscMessage m;
-	m.setAddress("mousePos");
+	m.setAddress("camPos");
 	m.addIntArg(ofGetMouseX());
-	m.addIntArg(ofGetMouseY());	
+	m.addIntArg(ofGetMouseY());
+	m.addIntArg(cam.getDistance());	
 	sender.sendMessage(m);
-	
-
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 	cam.begin();
-//	if (part) {
-//		<#statements#>
-//	}
-	vbo.setColorData(&colors[0],colors.size(),GL_DYNAMIC_DRAW);
-	vbo.setVertexData(&points[0], points.size(), GL_DYNAMIC_DRAW);
-	vbo.draw(GL_POINTS, 0, (int)points.size());
+
+	
+	if (part1) {
+		vbo.setColorData(&colors[0],colors.size(),GL_DYNAMIC_DRAW);
+		vbo.setVertexData(&points[0], points.size(), GL_DYNAMIC_DRAW);
+		vbo.draw(GL_POINTS, 0, (int)points.size());		
+	}
+	if (part2) {
+		ofSetColor(255,255,0,250);
+		ofFill();
+		ofCircle(initialPointsPos[randomNode].x, initialPointsPos[randomNode].y, initialPointsPos[randomNode].z, 5);
+		
+		ofLine(before.x, before.y, before.z, initialPointsPos[randomNode].x, initialPointsPos[randomNode].y, initialPointsPos[randomNode].z);
+		before = initialPointsPos[randomNode];
+		//cout << initialPointsPos[1] << endl;
+	}
+	
 	cam.end();
+	if (part3) {
+		ofSetColor(0,0,0,30);
+	}	else {
+		ofSetColor(0,0,0,0);
+	}
+	ofFill();
+	ofRect(-50, -50, ofGetWidth() + 100, ofGetHeight() + 100);
+	
 }
 void testApp::pullToCenter() {
 	for (int i = 0 ; i < points.size(); i++){
@@ -190,8 +239,30 @@ void testApp::keyPressed(int key){
 			break;
 		case 'g':
 			attractToCenterBool = !attractToCenterBool;
-			cout << attractToCenterBool;
 			break;			
+		case '1':
+			part1 = !part1;
+			break;			
+		case '2':
+			part2 = !part2;
+			break;			
+		case '3':
+			part3 = !part3;
+			break;			
+			
+		case '+':
+			rateSendNode = rateSendNode + 5;
+			cout << rateSendNode << endl;
+			break;			
+
+		case '-':
+			if (rateSendNode> 6) 	{	
+				rateSendNode = rateSendNode - 5;
+				cout << rateSendNode << endl;			
+			}
+
+			break;			
+			
 	}
 	
 }
