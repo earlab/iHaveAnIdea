@@ -9,7 +9,7 @@ void testApp::setup(){
 	part1 = false;
 	part3 = false;	
 	attractToCenterBool = false;
-	ofHideCursor();
+
 	ofEnableAlphaBlending(); 
 	//CGDisplayHideCursor(kCGDirectMainDisplay); 
 	//glutSetCursor(
@@ -74,19 +74,21 @@ ofVec3f testApp::findPoint(string str) {
 void testApp::update(){
 	if (ofGetFrameNum()%rateSendNode == true) {
 		randomNode = int(ofRandom(0, 40000));
-		ofxOscMessage m;
-		m.setAddress("node");
-		m.addFloatArg(initialPointsPos[randomNode].x);		
-		m.addFloatArg(initialPointsPos[randomNode].y);		
-		m.addFloatArg(initialPointsPos[randomNode].z);
-		m.addFloatArg(initialPointsPos[randomNode].distance( before ));
-		if (attractToCenterBool == true) {
-			m.addIntArg(10);
-		}	else {
-			m.addIntArg(1000);
-		}
-		sender.sendMessage(m);
-		
+		if (part2 == true) {
+			ofxOscMessage m;
+			m.setAddress("node");
+			m.addFloatArg(initialPointsPos[randomNode].x);		
+			m.addFloatArg(initialPointsPos[randomNode].y);		
+			m.addFloatArg(initialPointsPos[randomNode].z);
+			m.addFloatArg(initialPointsPos[randomNode].distance( before ));
+			if (attractToCenterBool == true) {
+				m.addIntArg(10);
+			}	else {
+				m.addIntArg(1000);
+			}
+			sender.sendMessage(m);
+			
+		}		
 	}
 
 	
@@ -167,7 +169,7 @@ void testApp::pushThemAway() {
 	for (int i = 0 ; i < points.size(); i++){
 		speeds[i] += accelerations[i];
 		points[i] += speeds[i];
-		colors[i] = ofFloatColor(speeds[i].x,speeds[i].y,speeds[i].z);
+		colors[i] = ofFloatColor(1-speeds[i].x,0.01+speeds[i].y,0.2+speeds[i].z);
 		accelerations[i] = 0;
 	}		
 }
@@ -249,15 +251,21 @@ void testApp::keyPressed(int key){
 		case '3':
 			part3 = !part3;
 			break;			
+		case 'c':
+			ofHideCursor();
+			break;			
+		case 'C':
+			ofShowCursor();
+			break;			
 			
 		case '+':
-			rateSendNode = rateSendNode + 5;
+			rateSendNode = rateSendNode + 1;
 			cout << rateSendNode << endl;
 			break;			
 
 		case '-':
-			if (rateSendNode> 6) 	{	
-				rateSendNode = rateSendNode - 5;
+			if (rateSendNode> 2) 	{	
+				rateSendNode = rateSendNode - 1;
 				cout << rateSendNode << endl;			
 			}
 
